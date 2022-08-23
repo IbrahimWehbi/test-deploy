@@ -1,6 +1,5 @@
 import './style.css'
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
 
 /**
@@ -8,12 +7,29 @@ import * as dat from 'lil-gui'
  */
 // Debug
 const gui = new dat.GUI()
+const debugObject = {}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+
+/**
+ * Environment map
+ */
+ const cubeTextureLoader = new THREE.CubeTextureLoader()
+ const environmentMap = cubeTextureLoader.load([
+    '/textures/environmentMaps/0/px.png',
+    '/textures/environmentMaps/0/nx.png',
+    '/textures/environmentMaps/0/py.png',
+    '/textures/environmentMaps/0/ny.png',
+    '/textures/environmentMaps/0/pz.png',
+    '/textures/environmentMaps/0/nz.png'
+])
+environmentMap.encoding = THREE.sRGBEncoding
+scene.background = environmentMap
+scene.environment = environmentMap
 
 /**
  * Lab Table
@@ -32,6 +48,61 @@ labTable.position.y -= 0.2
 scene.add(labTable)
 
 /**
+ * Invis Plane
+ */
+const invisPlane = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(14, 5),
+    new THREE.MeshStandardMaterial({
+        color: '#ffffff',
+        transparent: true,
+        opacity: 0
+    })
+)
+invisPlane.userData.invisPlane = true
+invisPlane.visible = false
+invisPlane.position.y = 2.8
+invisPlane.position.z = 0
+scene.add(invisPlane)
+
+/**
+ * pipette
+ */
+const pipetteGroup = new THREE.Group()
+pipetteGroup.position.x = 1
+pipetteGroup.position.y = 1.2
+scene.add(pipetteGroup)
+
+// plastic part
+const pipettePlastic = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.015, 0.8, 36),
+    new THREE.MeshStandardMaterial({
+        color: '#b5b5b5',
+        metalness: 0.6,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+pipettePlastic.castShadow = true
+pipettePlastic.position.x = 0
+pipettePlastic.position.y = - 0.3
+pipetteGroup.add(pipettePlastic)
+
+// rubber part
+const pipetteRubber = new THREE.Mesh(
+    new THREE.SphereGeometry(0.13, 32, 16),
+    new THREE.MeshBasicMaterial({
+        color: 0x292723,
+        metalness: 0,
+        roughness: 0.6,
+    })
+)
+pipetteRubber.castShadow = true
+pipetteRubber.position.x = 0
+pipetteRubber.position.y = 0.2
+pipetteGroup.add( pipetteRubber )
+
+/**
  * Test Tube Holder
  */
 const testTubeWood = new THREE.Mesh(
@@ -43,6 +114,7 @@ const testTubeWood = new THREE.Mesh(
     })
 )
 testTubeWood.castShadow = true
+testTubeWood.receiveShadow = true
 testTubeWood.rotation.x = - Math.PI * 0.5
 testTubeWood.position.x = -4
 testTubeWood.position.y = 0.2
@@ -89,8 +161,9 @@ testTubeMetalHolder.position.x = -3.2
 testTubeMetalHolder.position.y = 2.2
 scene.add(testTubeMetalHolder)
 
+// empty tube on metal holder
 const EmptytestTube = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.25, 3, 22),
+    new THREE.CylinderGeometry(0.25, 0.25, 2.4, 22),
     new THREE.MeshStandardMaterial({
         color: '#b5b5b5',
         metalness: 0.6,
@@ -101,7 +174,7 @@ const EmptytestTube = new THREE.Mesh(
 )
 EmptytestTube.castShadow = true
 EmptytestTube.position.x = - 3.2
-EmptytestTube.position.y = 2.4
+EmptytestTube.position.y = 2.1
 scene.add(EmptytestTube)
 
 let radius = 0.25;
@@ -127,8 +200,8 @@ scene.add(EmptytestTubeBottom)
  */
 let reagentSampleHeight = 0.1
 let reagentSamplRadius = 0.22
-let NaOHTubeHeight = 1
-let CuCl2TubeHeight = 1
+let NaOHLiquidHeight = 1
+let CuCl2LiquidHeight = 1
 const reagentSample = new THREE.Mesh(
     new THREE.CylinderGeometry(reagentSamplRadius, reagentSamplRadius, reagentSampleHeight, 22),
     new THREE.MeshStandardMaterial({
@@ -150,7 +223,7 @@ EmptytestTubeBottom.callback = addToReagent
 let reagentSelected = "";
 let reagentSampleClickedBefore = false;
 function addToReagent() {
-    if (reagentSampleHeight <= 2.7)
+    if (reagentSampleHeight <= 2.2)
     {
         if (reagentSelected == "NaOH")
         {
@@ -166,6 +239,7 @@ function addToReagent() {
             if (reagentSample.material.color.r > 1) reagentSample.material.color.r = 1
             if (reagentSample.material.color.b < 0) reagentSample.material.color.b = 0
 
+            // increase reagent with red
             reagentSampleHeight += 0.1
             reagentSample.geometry.dispose()
             reagentSample.geometry = new THREE.CylinderGeometry(reagentSamplRadius, reagentSamplRadius, reagentSampleHeight, 22)
@@ -185,6 +259,7 @@ function addToReagent() {
             if (reagentSample.material.color.r < 0) reagentSample.material.color.r = 0
             if (reagentSample.material.color.b > 1) reagentSample.material.color.b = 1
 
+            // increase reagent with blue
             reagentSampleHeight += 0.1
             reagentSample.geometry.dispose()
             reagentSample.geometry = new THREE.CylinderGeometry(reagentSamplRadius, reagentSamplRadius, reagentSampleHeight, 22)
@@ -207,8 +282,9 @@ function resetReagent() {
 /**
  * NaOHTube
  */
- const NaOHTube = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.5, NaOHTubeHeight, 22),
+// red liquid
+const NaOHTube = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.5, NaOHLiquidHeight, 22),
     new THREE.MeshStandardMaterial({
         color: 'rgba(255, 0, 0)',
         metalness: 0,
@@ -218,11 +294,28 @@ function resetReagent() {
     })
 )
 NaOHTube.castShadow = true
-NaOHTube.position.x = 2
-NaOHTube.position.y = 0.5
+NaOHTube.position.x = 1
+NaOHTube.position.y = 0.6
 scene.add(NaOHTube)
 
-NaOHTube.callback = () =>
+// red liquid beaker
+const NaOHBeakerHeight = 1.2
+const NaOHBeaker = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.58, NaOHBeakerHeight, 32),
+    new THREE.MeshStandardMaterial({
+        color: '#b5b5b5',
+        metalness: 0.6,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+NaOHBeaker.name = "beaker"
+NaOHBeaker.castShadow = true
+NaOHBeaker.position.x = 1
+NaOHBeaker.position.y = 0.6
+scene.add(NaOHBeaker)
+NaOHBeaker.callback = () =>
 {
     reagentSelected = "NaOH"
 }
@@ -230,8 +323,9 @@ NaOHTube.callback = () =>
 /**
  * CuCl2Tube
  */
+// blue liquid
  const CuCl2Tube = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.5, CuCl2TubeHeight, 22),
+    new THREE.CylinderGeometry(0.25, 0.5, CuCl2LiquidHeight, 22),
     new THREE.MeshStandardMaterial({
         color: 'rgba(0, 0, 255)',
         metalness: 0,
@@ -241,11 +335,28 @@ NaOHTube.callback = () =>
     })
 )
 CuCl2Tube.castShadow = true
-CuCl2Tube.position.x = 4
-CuCl2Tube.position.y = 0.5
+CuCl2Tube.position.x = 3
+CuCl2Tube.position.y = 0.6
 scene.add(CuCl2Tube)
 
-CuCl2Tube.callback = () =>
+// blue liquid beaker
+const CuCl2BeakerHeight = 1.2
+const CuCl2Beaker = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.58, CuCl2BeakerHeight, 32),
+    new THREE.MeshStandardMaterial({
+        color: '#b5b5b5',
+        metalness: 0.6,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+CuCl2Beaker.name = "beaker"
+CuCl2Beaker.castShadow = true
+CuCl2Beaker.position.x = 3
+CuCl2Beaker.position.y = 0.6
+scene.add(CuCl2Beaker)
+CuCl2Beaker.callback = () =>
 {
     reagentSelected = "CuCl2"
 }
@@ -293,17 +404,16 @@ window.addEventListener('resize', () =>
 /**
  * Camera
  */
-// Base camera
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.set(0, 2.5, 7)
-scene.add(camera)
+// Group
+const cameraGroup = new THREE.Group()
+scene.add(cameraGroup)
 
-// Controls
-const controls = new OrbitControls(camera, canvas)
-controls.target.set(0, 0.75, 0)
-controls.enableDamping = true
-controls.enablePan = false
-controls.enableZoom = false
+// Base camera
+const camera = new THREE.PerspectiveCamera(30, sizes.width / sizes.height, 0.1, 100)
+camera.position.y = 3
+camera.position.z = 11
+camera.lookAt(new THREE.Vector3(0, 2, 0))
+cameraGroup.add(camera)
 
 /**
  * Cursor
@@ -312,43 +422,57 @@ controls.enableZoom = false
  cursor.x = 0
  cursor.y = 0
  
+ let INTERSECTED;
+ const pointer = new THREE.Vector2();
+
  window.addEventListener('mousemove', (event) =>
  {
-     cursor.x = event.clientX / sizes.width - 0.5
-     cursor.y = event.clientY / sizes.height - 0.5
+    // for camera damping
+    cursor.x = event.clientX / sizes.width - 0.5
+    cursor.y = event.clientY / sizes.height - 0.5
+
+    pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
  })
 
 /**
  * Raycaster
  */
  let raycaster = new THREE.Raycaster();
- let mouse = new THREE.Vector2();
  
  function onDocumentMouseDown(event)
  {
     event.preventDefault();
 
-    if (event.which === 3) resetReagent()
+    if (event.which === 3)
+    {
+        resetReagent()
+        return
+    }
+    else if (event.which === 2)
+    {
+        return
+    }
 
-    mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
 
-    raycaster.setFromCamera( mouse, camera );
+    let intersects = raycaster.intersectObjects(scene.children); 
 
-    let intersects = raycaster.intersectObjects( scene.children ); 
-
-    if ( intersects.length > 0 )
+    if (intersects.length > 0)
     {
         if (intersects[0].object.callback) intersects[0].object.callback();
     }
 }
+
 window.addEventListener('mousedown', onDocumentMouseDown, false);
+document.addEventListener('contextmenu', event => event.preventDefault());
 
 /**
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
+    canvas: canvas,
+    antialias: true
 })
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -367,8 +491,44 @@ const tick = () =>
     const deltaTime = elapsedTime - previousTime
     previousTime = elapsedTime
 
-    // Update controls
-    controls.update()
+    // update custom camera controls
+    const parallaxX = cursor.x * 4
+    const parallaxY = - cursor.y * 0.5
+    cameraGroup.position.x += (parallaxX - cameraGroup.position.x) * 10 * deltaTime
+    cameraGroup.position.y += (parallaxY - cameraGroup.position.y) * 10 * deltaTime
+    camera.lookAt(new THREE.Vector3(0, 2, 0))
+    camera.updateMatrixWorld()
+
+    // find intersections
+    raycaster.setFromCamera( pointer, camera );
+
+    const intersects = raycaster.intersectObjects( scene.children, false );
+
+    if (intersects.length > 0)
+    {
+        for (let i of intersects)
+        {
+            if (i.object.userData.invisPlane)
+            {
+                // update pipette
+                pipetteGroup.position.x = i.point.x
+                pipetteGroup.position.y = i.point.y
+            }
+        }
+        if (INTERSECTED != intersects[0].object)
+        {
+                if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+                INTERSECTED = intersects[0].object;
+                INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+                INTERSECTED.material.emissive.setHex(0x00ff00);
+        }
+    }
+    else
+    {
+        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+        INTERSECTED = null;
+    }
 
     // Render
     renderer.render(scene, camera)
