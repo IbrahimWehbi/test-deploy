@@ -1,11 +1,14 @@
 {
+  "name": "test-deploy",
+  "version": "1.0.8",
+  "homepage": "https://ibrahimwehbi.github.io/test-deploy/",
   "repository": "#",
   "license": "UNLICENSED",
   "scripts": {
     "build": "webpack --config ./bundler/webpack.prod.js",
     "dev": "webpack serve --config ./bundler/webpack.dev.js",
+    "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
-
   },
   "dependencies": {
     "@babel/core": "^7.17.10",
