@@ -1,13 +1,14 @@
 import './style.css'
 import * as THREE from 'three'
 import * as dat from 'lil-gui'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 /**
  * Base
  */
 // Debug
-const gui = new dat.GUI()
-const debugObject = {}
+// const gui = new dat.GUI()
+// const debugObject = {}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -15,9 +16,87 @@ const canvas = document.querySelector('canvas.webgl')
 // Scene
 const scene = new THREE.Scene()
 
+// Loaders
+const gltfLoader = new GLTFLoader()
+
+// Loaded Bottle models
+let bottle1Group = new THREE.Group()
+let bottle2Group = new THREE.Group()
+
+// Load External Assets
+gltfLoader.load(
+    '/models/Apple/apple.glb',
+    (gltf) =>
+    {
+        const appleGroup = gltf.scene.children[0]
+        appleGroup.scale.set(4, 4, 4)
+        appleGroup.position.set(- 4, 0.2 ,2)
+        appleGroup.rotation.set(0, 0, 1.3)
+        appleGroup.castShadow = true
+        scene.add(gltf.scene.children[0])
+    }
+)
+gltfLoader.load(
+    '/models/frappe.glb',
+    (gltf) =>
+    {
+        const appleGroup = gltf.scene.children[0]
+        appleGroup.scale.set(4, 4, 4)
+        appleGroup.position.set(5, 0.2, 2)
+        appleGroup.castShadow = true
+        scene.add(gltf.scene.children[0])
+    }
+)
+gltfLoader.load(
+    '/models/laptop.glb',
+    (gltf) =>
+    {
+        const appleGroup = gltf.scene.children[0]
+        appleGroup.scale.set(4, 4, 4)
+        appleGroup.rotation.set(0, - 0.5, 0)
+        appleGroup.position.set(3, 0.2, 0)
+        appleGroup.castShadow = true
+        scene.add(gltf.scene.children[0])
+    }
+)
+
 /**
  * Environment map
  */
+ const textureLoader = new THREE.TextureLoader();
+ let envPlaneTexture;
+ textureLoader.load(
+	"/textures/sunset-scenery.jpg",
+    
+	// onLoad callback
+	function ( texture ) {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+		envPlaneTexture = new THREE.MeshPhongMaterial( {
+			map: texture,
+            // doubleSide: true
+		 })
+         /**
+         * Env Plane
+         */
+        let envPlaneGroup = new THREE.Group()
+        scene.add(envPlaneGroup)
+        const envPlane = new THREE.Mesh(
+            new THREE.PlaneBufferGeometry(128, 64, 32),
+            envPlaneTexture
+        )
+        envPlane.position.z = - 50
+        envPlaneGroup.add(envPlane)
+	},
+
+	// onProgress callback currently not supported
+	undefined,
+
+	// onError callback
+	function ( err ) {
+		console.error( 'An error happened.' );
+	}
+)
  const cubeTextureLoader = new THREE.CubeTextureLoader()
  const environmentMap = cubeTextureLoader.load([
     '/textures/environmentMaps/0/px.png',
@@ -28,12 +107,15 @@ const scene = new THREE.Scene()
     '/textures/environmentMaps/0/nz.png'
 ])
 environmentMap.encoding = THREE.sRGBEncoding
-scene.background = environmentMap
+// scene.background = environmentMap
 scene.environment = environmentMap
 
 /**
  * Lab Table
  */
+let labTableGroup = new THREE.Group()
+scene.add(labTableGroup)
+
 const labTable = new THREE.Mesh(
     new THREE.BoxBufferGeometry(14, 5, 0.4),
     new THREE.MeshStandardMaterial({
@@ -45,7 +127,7 @@ const labTable = new THREE.Mesh(
 labTable.receiveShadow = true
 labTable.rotation.x = - Math.PI * 0.5
 labTable.position.y -= 0.2
-scene.add(labTable)
+labTableGroup.add(labTable)
 
 /**
  * Invis Plane
@@ -85,7 +167,7 @@ const pipettePlastic = new THREE.Mesh(
 )
 pipettePlastic.castShadow = true
 pipettePlastic.position.x = 0
-pipettePlastic.position.y = - 0.3
+pipettePlastic.position.y = 0.4
 pipetteGroup.add(pipettePlastic)
 
 // rubber part
@@ -99,7 +181,7 @@ const pipetteRubber = new THREE.Mesh(
 )
 pipetteRubber.castShadow = true
 pipetteRubber.position.x = 0
-pipetteRubber.position.y = 0.2
+pipetteRubber.position.y = 0.9
 pipetteGroup.add( pipetteRubber )
 
 /**
@@ -116,7 +198,7 @@ const testTubeWood = new THREE.Mesh(
 testTubeWood.castShadow = true
 testTubeWood.receiveShadow = true
 testTubeWood.rotation.x = - Math.PI * 0.5
-testTubeWood.position.x = -4
+testTubeWood.position.x = - 2
 testTubeWood.position.y = 0.2
 scene.add(testTubeWood)
 
@@ -129,7 +211,7 @@ const testTubeVRod = new THREE.Mesh(
     })
 )
 testTubeVRod.castShadow = true
-testTubeVRod.position.x = -4
+testTubeVRod.position.x = - 2
 testTubeVRod.position.y = 1.4
 scene.add(testTubeVRod)
 
@@ -143,7 +225,7 @@ const testTubeHRod = new THREE.Mesh(
 )
 testTubeHRod.castShadow = true
 testTubeHRod.rotation.z = - Math.PI * 0.5
-testTubeHRod.position.x = -3.75
+testTubeHRod.position.x = -1.75
 testTubeHRod.position.y = 2.2
 scene.add(testTubeHRod)
 
@@ -157,7 +239,7 @@ const testTubeMetalHolder = new THREE.Mesh(
 )
 testTubeMetalHolder.castShadow = true
 testTubeMetalHolder.rotation.x = - Math.PI * 0.5
-testTubeMetalHolder.position.x = -3.2
+testTubeMetalHolder.position.x = - 1.2
 testTubeMetalHolder.position.y = 2.2
 scene.add(testTubeMetalHolder)
 
@@ -173,7 +255,7 @@ const EmptytestTube = new THREE.Mesh(
     })
 )
 EmptytestTube.castShadow = true
-EmptytestTube.position.x = - 3.2
+EmptytestTube.position.x = - 1.2
 EmptytestTube.position.y = 2.1
 scene.add(EmptytestTube)
 
@@ -191,7 +273,7 @@ const EmptytestTubeBottom = new THREE.Mesh(
 )
 EmptytestTubeBottom.castShadow = true
 EmptytestTubeBottom.rotation.x = Math.PI
-EmptytestTubeBottom.position.x = - 3.2
+EmptytestTubeBottom.position.x = - 1.2
 EmptytestTubeBottom.position.y = 0.9
 scene.add(EmptytestTubeBottom)
 
@@ -200,8 +282,8 @@ scene.add(EmptytestTubeBottom)
  */
 let reagentSampleHeight = 0.1
 let reagentSamplRadius = 0.22
-let NaOHLiquidHeight = 1
-let CuCl2LiquidHeight = 1
+let NaOHLiquidHeight = 0.8
+let CuCl2LiquidHeight = 0.8
 const reagentSample = new THREE.Mesh(
     new THREE.CylinderGeometry(reagentSamplRadius, reagentSamplRadius, reagentSampleHeight, 22),
     new THREE.MeshStandardMaterial({
@@ -212,7 +294,7 @@ const reagentSample = new THREE.Mesh(
         opacity: 0.34
     })
 )
-reagentSample.position.x = - 3.2
+reagentSample.position.x = - 1.2
 reagentSample.position.y = 1
 scene.add(reagentSample)
 
@@ -284,7 +366,7 @@ function resetReagent() {
  */
 // red liquid
 const NaOHTube = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.5, NaOHLiquidHeight, 22),
+    new THREE.CylinderGeometry(0.5, 0.5, NaOHLiquidHeight, 22),
     new THREE.MeshStandardMaterial({
         color: 'rgba(255, 0, 0)',
         metalness: 0,
@@ -294,14 +376,14 @@ const NaOHTube = new THREE.Mesh(
     })
 )
 NaOHTube.castShadow = true
-NaOHTube.position.x = 1
-NaOHTube.position.y = 0.6
+NaOHTube.position.x = 0.5
+NaOHTube.position.y = 0.5
 scene.add(NaOHTube)
 
 // red liquid beaker
 const NaOHBeakerHeight = 1.2
 const NaOHBeaker = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.58, NaOHBeakerHeight, 32),
+    new THREE.CylinderGeometry(0.55, 0.55, NaOHBeakerHeight, 32),
     new THREE.MeshStandardMaterial({
         color: '#b5b5b5',
         metalness: 0.6,
@@ -312,7 +394,7 @@ const NaOHBeaker = new THREE.Mesh(
 )
 NaOHBeaker.name = "beaker"
 NaOHBeaker.castShadow = true
-NaOHBeaker.position.x = 1
+NaOHBeaker.position.x = 0.5
 NaOHBeaker.position.y = 0.6
 scene.add(NaOHBeaker)
 NaOHBeaker.callback = () =>
@@ -325,7 +407,7 @@ NaOHBeaker.callback = () =>
  */
 // blue liquid
  const CuCl2Tube = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.5, CuCl2LiquidHeight, 22),
+    new THREE.CylinderGeometry(0.5, 0.5, CuCl2LiquidHeight, 22),
     new THREE.MeshStandardMaterial({
         color: 'rgba(0, 0, 255)',
         metalness: 0,
@@ -335,14 +417,14 @@ NaOHBeaker.callback = () =>
     })
 )
 CuCl2Tube.castShadow = true
-CuCl2Tube.position.x = 3
-CuCl2Tube.position.y = 0.6
+CuCl2Tube.position.x = 2.5
+CuCl2Tube.position.y = 0.5
 scene.add(CuCl2Tube)
 
 // blue liquid beaker
 const CuCl2BeakerHeight = 1.2
 const CuCl2Beaker = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.58, CuCl2BeakerHeight, 32),
+    new THREE.CylinderGeometry(0.55, 0.55, CuCl2BeakerHeight, 32),
     new THREE.MeshStandardMaterial({
         color: '#b5b5b5',
         metalness: 0.6,
@@ -353,7 +435,7 @@ const CuCl2Beaker = new THREE.Mesh(
 )
 CuCl2Beaker.name = "beaker"
 CuCl2Beaker.castShadow = true
-CuCl2Beaker.position.x = 3
+CuCl2Beaker.position.x = 2.5
 CuCl2Beaker.position.y = 0.6
 scene.add(CuCl2Beaker)
 CuCl2Beaker.callback = () =>
@@ -375,7 +457,7 @@ directionalLight.shadow.camera.left = - 7
 directionalLight.shadow.camera.top = 7
 directionalLight.shadow.camera.right = 7
 directionalLight.shadow.camera.bottom = - 7
-directionalLight.position.set(- 5, 5, 0)
+directionalLight.position.set(- 1, 5, -5)
 scene.add(directionalLight)
 
 /**
@@ -538,3 +620,156 @@ const tick = () =>
 }
 
 tick()
+
+/**
+ * Test Tube Holder 1
+ */
+let testTube1 = new THREE.Group()
+testTube1.rotation.y = - 0.5
+testTube1.position.x = - 3.3
+testTube1.position.z = 1.4
+scene.add(testTube1)
+
+const testTubeWood1 = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1.2, 0.4),
+    new THREE.MeshStandardMaterial({
+        color: '#36220a',
+        metalness: 0,
+        roughness: 1
+    })
+)
+testTubeWood1.castShadow = true
+testTubeWood1.receiveShadow = true
+testTubeWood1.rotation.x = - Math.PI * 0.5
+testTubeWood1.position.y = 0.2
+testTube1.add(testTubeWood1)
+
+const testTubeVRod1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.04, 2.5, 36),
+    new THREE.MeshStandardMaterial({
+        color: '#7d7c7c',
+        metalness: 0.6,
+        roughness: 0.2
+    })
+)
+testTubeVRod1.castShadow = true
+testTubeVRod1.position.y = 1.4
+testTube1.add(testTubeVRod1)
+
+const testTubeHRod1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.04, 0.5, 36),
+    new THREE.MeshStandardMaterial({
+        color: '#7d7c7c',
+        metalness: 0.6,
+        roughness: 0.2
+    })
+)
+testTubeHRod1.castShadow = true
+testTubeHRod1.rotation.z = - Math.PI * 0.5
+testTubeHRod1.position.x = 0.25
+testTubeHRod1.position.y = 2.2
+testTube1.add(testTubeHRod1)
+
+const testTubeMetalHolder1 = new THREE.Mesh(
+    new THREE.TorusGeometry(0.29, 0.0389, 8, 50),
+    new THREE.MeshStandardMaterial({
+        color: '#7d7c7c',
+        metalness: 0.6,
+        roughness: 0.2
+    })
+)
+testTubeMetalHolder1.castShadow = true
+testTubeMetalHolder1.rotation.x = - Math.PI * 0.5
+testTubeMetalHolder1.position.x = 0.8
+testTubeMetalHolder1.position.y = 2.2
+testTube1.add(testTubeMetalHolder1)
+
+// empty tube on metal holder
+const EmptytestTube1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 2.4, 22),
+    new THREE.MeshStandardMaterial({
+        color: '#b5b5b5',
+        metalness: 0.6,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+EmptytestTube1.castShadow = true
+EmptytestTube1.position.x = 0.8
+EmptytestTube1.position.y = 2.1
+testTube1.add(EmptytestTube1)
+
+const EmptytestTubeBottom1 = new THREE.Mesh(
+    new THREE.SphereBufferGeometry(radius, radialSegments, Math.round(radialSegments / 4), 0, Math.PI * 2, 0, Math.PI * 0.5),
+    new THREE.MeshStandardMaterial({
+        color: '#b5b5b5',
+        metalness: 0.6,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+EmptytestTubeBottom1.castShadow = true
+EmptytestTubeBottom1.rotation.x = Math.PI
+EmptytestTubeBottom1.position.x = 0.8
+EmptytestTubeBottom1.position.y = 0.9
+testTube1.add(EmptytestTubeBottom1)
+
+/**
+ * Reagent Sample
+ */
+const reagentSample1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(reagentSamplRadius, reagentSamplRadius, 1, 22),
+    new THREE.MeshStandardMaterial({
+        color: '#5f4087',
+        metalness: 0,
+        roughness: 0.5,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+reagentSample1.position.x = 0.8
+reagentSample1.position.y = 1.3
+testTube1.add(reagentSample1)
+
+// tube on the ground
+let tubeOnGroundGroup = new THREE.Group()
+tubeOnGroundGroup.rotation.x = 1.5
+tubeOnGroundGroup.rotation.z = 1.5
+tubeOnGroundGroup.position.x = - 2
+tubeOnGroundGroup.position.y = 0.2
+tubeOnGroundGroup.position.z = - 1.2
+scene.add(tubeOnGroundGroup)
+
+// empty tube on metal holder
+const tubeOnGround1 = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.25, 0.25, 2.4, 22),
+    new THREE.MeshStandardMaterial({
+        color: '#b5b5b5',
+        metalness: 0.6,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+tubeOnGround1.castShadow = true
+tubeOnGround1.position.x = 0.8
+tubeOnGround1.position.y = 2.1
+tubeOnGroundGroup.add(tubeOnGround1)
+
+const tubeOnGroundBottom1 = new THREE.Mesh(
+    new THREE.SphereBufferGeometry(radius, radialSegments, Math.round(radialSegments / 4), 0, Math.PI * 2, 0, Math.PI * 0.5),
+    new THREE.MeshStandardMaterial({
+        color: '#b5b5b5',
+        metalness: 0.6,
+        roughness: 0.2,
+        transparent: true,
+        opacity: 0.34
+    })
+)
+tubeOnGroundBottom1.castShadow = true
+tubeOnGroundBottom1.rotation.x = Math.PI
+tubeOnGroundBottom1.position.x = 0.8
+tubeOnGroundBottom1.position.y = 0.9
+tubeOnGroundGroup.add(tubeOnGroundBottom1)
