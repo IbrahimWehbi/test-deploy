@@ -7,8 +7,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
  * Base
  */
 // Debug
-const gui = new dat.GUI()
-const debugObject = {}
+// const gui = new dat.GUI()
+// const debugObject = {}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
@@ -93,8 +93,8 @@ function GLTFModelCastsShadow(gltfScene)
     {
         if (child.isMesh)
         {
-            child.castShadow = true;
-            child.receiveShadow = true;
+            child.castShadow = true
+            child.receiveShadow = true
         }
 
     })
@@ -162,8 +162,8 @@ gltfLoader.load(
 	// onLoad callback
 	function (texture)
     {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
+        texture.wrapS = THREE.RepeatWrapping
+        texture.wrapT = THREE.RepeatWrapping
 		envPlaneTexture = new THREE.MeshPhongMaterial( {
 			map: texture,
 		 })
@@ -182,7 +182,7 @@ gltfLoader.load(
 	// onError callback
 	function (err)
     {
-		console.error('An error happened.');
+		console.error('An error happened.')
 	}
 )
 // Sun-set cube map
@@ -780,11 +780,11 @@ window.addEventListener('mousemove', (event) =>
    cursor.y = event.clientY / sizes.height - 0.5
 
    // for object intersects
-   pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-   pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+   pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1
+   pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1
 })
 
-let arrow = null
+// let arrow = null
 window.addEventListener('mousedown', event =>
 {
     event.preventDefault()
@@ -825,3 +825,30 @@ window.addEventListener('mousedown', event =>
 }, false)
 
 window.addEventListener('contextmenu', event => event.preventDefault())
+
+function removeObject3D(object3D)
+{
+    if (!(object3D instanceof THREE.Object3D)) return false
+  
+    if (object3D.geometry) object3D.geometry.dispose()
+  
+    if (object3D.material) {
+        if (object3D.material instanceof Array) {
+            object3D.material.forEach(material => { 
+              // clearing all the maps
+              for (const [prop, value] of Object.entries(material)) {
+                if (value && value.dispose instanceof Function) value.dispose()
+              }
+              material.dispose()
+            })
+        } else {
+            // clearing all the maps
+            for (const [prop, value] of Object.entries(object3D.material)) {
+              if (value && value.dispose instanceof Function) value.dispose()
+            }
+            object3D.material.dispose()
+        }
+    }
+    object3D.removeFromParent() // the parent might be the scene or another Object3D, but it is sure to be removed this way
+    return true
+}
