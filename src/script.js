@@ -105,7 +105,7 @@ function GLTFModelCastsShadow(gltfScene)
  */
 // Apple
 gltfLoader.load(
-    '/models/Apple/apple.glb',
+    './models/Apple/apple.glb',
     (gltf) =>
     {
         GLTFModelCastsShadow(gltf.scene)
@@ -124,7 +124,7 @@ gltfLoader.load(
 )
 // Frappe
 gltfLoader.load(
-    '/models/frappe.glb',
+    './models/frappe.glb',
     (gltf) =>
     {
         GLTFModelCastsShadow(gltf.scene)
@@ -140,7 +140,7 @@ gltfLoader.load(
 )
 // Laptop
 gltfLoader.load(
-    '/models/laptop.glb',
+    './models/laptop.glb',
     (gltf) =>
     {
         GLTFModelCastsShadow(gltf.scene)
@@ -158,7 +158,7 @@ gltfLoader.load(
  */
 // Vertical Plane in the distance with sun-set texture
  textureLoader.load(
-	"/textures/sunset-scenery.jpg",
+	"./textures/sunset-scenery.jpg",
 	// onLoad callback
 	function (texture)
     {
@@ -187,12 +187,12 @@ gltfLoader.load(
 )
 // Sun-set cube map
 const environmentMap = cubeTextureLoader.load([
-    '/textures/environmentMaps/0/px.png',
-    '/textures/environmentMaps/0/nx.png',
-    '/textures/environmentMaps/0/py.png',
-    '/textures/environmentMaps/0/ny.png',
-    '/textures/environmentMaps/0/pz.png',
-    '/textures/environmentMaps/0/nz.png'
+    './textures/environmentMaps/0/px.png',
+    './textures/environmentMaps/0/nx.png',
+    './textures/environmentMaps/0/py.png',
+    './textures/environmentMaps/0/ny.png',
+    './textures/environmentMaps/0/pz.png',
+    './textures/environmentMaps/0/nz.png'
 ])
 environmentMap.encoding = THREE.sRGBEncoding
 // scene.background = environmentMap
