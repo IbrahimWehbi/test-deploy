@@ -8,6 +8,7 @@ import * as CONSTANTS from './constants.js';
 import { Materials } from './materials';
 import Beaker from './components/beaker.js';
 import TestTube from './components/test-tube.js';
+import TestTubeStand from './components/test-tube-stand.js';
 
 /**
  * Base
@@ -40,7 +41,6 @@ const pointer = new THREE.Vector2();
 // Groups
 const labTableGroup = new THREE.Group();
 const pipetteGroup = new THREE.Group();
-const testTubeHolderGroup = new THREE.Group();
 
 // tools measurements
 const labTableWidth = 15;
@@ -86,7 +86,7 @@ gltfLoader.load('models/Apple/apple.glb', (gltf) => {
   GLTFModelCastsShadow(gltf.scene);
   const appleGroup = gltf.scene.children[0];
   appleGroup.scale.set(4, 4, 4);
-  appleGroup.position.set(-4, 0.18, 2);
+  appleGroup.position.set(-4, 0.18, 2.3);
   // gui.add(appleGroup.position, 'x').min(- 3).max(3).step(0.01).name('appleGroup pos x')
   // gui.add(appleGroup.position, 'y').min(- 3).max(3).step(0.01).name('appleGroup pos y')
   // gui.add(appleGroup.position, 'z').min(- 3).max(3).step(0.01).name('appleGroup pos z')
@@ -214,79 +214,20 @@ pipettePlastic.castShadow = true;
 pipettePlastic.position.y = pipettePlasticHeight * 0.5;
 pipetteGroup.add(pipettePlastic);
 /**
- * Test Tube Holder
+ * Test Tube Stand
  */
-testTubeHolderGroup.position.x = -2;
-scene.add(testTubeHolderGroup);
-// Woood stand
-const testTubeWoodDepth = 0.4;
-const testTubeWood = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, testTubeWoodDepth), Materials.wood);
-testTubeWood.castShadow = true;
-testTubeWood.receiveShadow = true;
-testTubeWood.rotation.x = -Math.PI * 0.5;
-testTubeWood.position.y = testTubeWoodDepth * 0.5;
-// gui.add(testTubeWood.position, 'y').min(- 3).max(3).step(0.01).name('testTubeWood elevation')
-testTubeHolderGroup.add(testTubeWood);
-// Vertical beam metal holder
-const testTubeRodRadius = 0.04;
-const testTubeVRodHeight = 2.5;
-const testTubeVRod = new THREE.Mesh(
-  new THREE.CylinderGeometry(testTubeRodRadius, testTubeRodRadius, testTubeVRodHeight, CONSTANTS.RADIAL_SEGMENTS),
-  Materials.metal
+const testTubeStand = new TestTubeStand(
+  new TestTube({
+    radius: testTubeRadius,
+    height: testTubeHeight,
+    radialSegments: CONSTANTS.RADIAL_SEGMENTS,
+    clickable: true,
+    material: Materials.glass,
+  }),
+  { amount: 1, material: Materials.transparentReagent }
 );
-testTubeVRod.castShadow = true;
-testTubeVRod.position.y = testTubeWoodDepth + testTubeVRodHeight * 0.5;
-// gui.add(testTubeVRod.position, 'y').min(- 3).max(3).step(0.01).name('testTubeVRod elevation')
-testTubeHolderGroup.add(testTubeVRod);
-// Horizontal beam metal holder
-const testTubeHRodHeight = 0.5;
-const testTubeHRod = new THREE.Mesh(
-  new THREE.CylinderGeometry(testTubeRodRadius, testTubeRodRadius, testTubeHRodHeight, CONSTANTS.RADIAL_SEGMENTS),
-  Materials.metal
-);
-testTubeHRod.castShadow = true;
-testTubeHRod.rotation.z = -Math.PI * 0.5;
-testTubeHRod.position.x = testTubeHRodHeight * 0.5;
-// gui.add(testTubeHRod.position, 'x').min(- 3).max(3).step(0.01).name('testTubeVRod x')
-testTubeHRod.position.y = testTubeWoodDepth + testTubeVRodHeight * 0.75;
-testTubeHolderGroup.add(testTubeHRod);
-// Horizontal ring metal holder
-const testTubeMetalHolder = new THREE.Mesh(new THREE.TorusGeometry(0.285, 0.035, 6, 32), Materials.metal);
-testTubeMetalHolder.castShadow = true;
-testTubeMetalHolder.rotation.x = -Math.PI * 0.5;
-testTubeMetalHolder.position.x = 0.8;
-testTubeMetalHolder.position.y = testTubeWoodDepth + testTubeVRodHeight * 0.75;
-testTubeHolderGroup.add(testTubeMetalHolder);
-/**
- * Test Tube
- */
-const activeTestTube = new TestTube({
-  radius: testTubeRadius,
-  height: testTubeHeight,
-  radialSegments: CONSTANTS.RADIAL_SEGMENTS,
-  material: Materials.glass,
-});
-activeTestTube.name = 'activeTestTube';
-activeTestTube.castShadow = true;
-activeTestTube.position.x = -1.2;
-activeTestTube.position.y = testTubeRadius + testTubeHeight * 0.5 + 0.4;
-scene.add(activeTestTube);
-/**
- * Reagent Sample
- */
-let reagentSampleHeight = 0.1;
-let reagentSampleRadius = CONSTANTS.TUBE_RADIUS * 0.85;
-const reagentSample = new THREE.Mesh(
-  new THREE.CylinderGeometry(reagentSampleRadius, reagentSampleRadius, reagentSampleHeight, CONSTANTS.RADIAL_SEGMENTS),
-  Materials.transparentReagent
-);
-reagentSample.position.x = -1.2;
-reagentSample.position.y = CONSTANTS.TUBE_RADIUS * 0.9 + 0.5;
-scene.add(reagentSample);
-
-// onClick add to reagent if pipette has liquid
-reagentSample.callback = addToReagent;
-activeTestTube.callback = addToReagent;
+testTubeStand.position.x = -2;
+scene.add(testTubeStand);
 
 let reagentSelected = '';
 let reagentSampleClickedBefore = false;
@@ -503,173 +444,37 @@ const tick = () => {
 tick();
 
 /**
- * Test Tube Holder 1
+ * Test Tube Stand 1
  */
-let testTube1 = new THREE.Group();
-testTube1.rotation.y = -0.5;
-testTube1.position.x = -3.3;
-testTube1.position.z = 1.4;
-scene.add(testTube1);
-
-const testTubeWood1 = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1.2, 0.4),
-  new THREE.MeshStandardMaterial({
-    color: '#36220a',
-    metalness: 0,
-    roughness: 1,
-  })
+let testTubeStand1 = new TestTubeStand(
+  new TestTube({
+    radius: testTubeRadius,
+    height: testTubeHeight,
+    radialSegments: CONSTANTS.RADIAL_SEGMENTS,
+    clickable: false,
+    material: Materials.glass.clone(),
+  }),
+  { amount: 10, material: Materials.purpleLiquid }
 );
-testTubeWood1.castShadow = true;
-testTubeWood1.receiveShadow = true;
-testTubeWood1.rotation.x = -Math.PI * 0.5;
-testTubeWood1.position.y = 0.2;
-testTube1.add(testTubeWood1);
-
-const testTubeVRod1 = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.04, 0.04, 2.5, 36),
-  new THREE.MeshStandardMaterial({
-    color: '#7d7c7c',
-    metalness: 0.6,
-    roughness: 0.2,
-  })
-);
-testTubeVRod1.castShadow = true;
-testTubeVRod1.position.y = 1.4;
-testTube1.add(testTubeVRod1);
-
-const testTubeHRod1 = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.04, 0.04, 0.5, 36),
-  new THREE.MeshStandardMaterial({
-    color: '#7d7c7c',
-    metalness: 0.6,
-    roughness: 0.2,
-  })
-);
-testTubeHRod1.castShadow = true;
-testTubeHRod1.rotation.z = -Math.PI * 0.5;
-testTubeHRod1.position.x = 0.25;
-testTubeHRod1.position.y = 2.2;
-testTube1.add(testTubeHRod1);
-
-const testTubeMetalHolder1 = new THREE.Mesh(
-  new THREE.TorusGeometry(0.29, 0.0389, 8, 50),
-  new THREE.MeshStandardMaterial({
-    color: '#7d7c7c',
-    metalness: 0.6,
-    roughness: 0.2,
-  })
-);
-testTubeMetalHolder1.castShadow = true;
-testTubeMetalHolder1.rotation.x = -Math.PI * 0.5;
-testTubeMetalHolder1.position.x = 0.8;
-testTubeMetalHolder1.position.y = 2.2;
-testTube1.add(testTubeMetalHolder1);
-
-// empty tube on metal holder
-const EmptytestTube1 = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.25, 0.25, 2.4, 22),
-  new THREE.MeshStandardMaterial({
-    color: '#b5b5b5',
-    metalness: 0.6,
-    roughness: 0.2,
-    transparent: true,
-    opacity: 0.32,
-  })
-);
-EmptytestTube1.castShadow = true;
-EmptytestTube1.position.x = 0.8;
-EmptytestTube1.position.y = 2.1;
-testTube1.add(EmptytestTube1);
-
-const EmptytestTubeBottom1 = new THREE.Mesh(
-  new THREE.SphereBufferGeometry(
-    CONSTANTS.TUBE_RADIUS,
-    CONSTANTS.RADIAL_SEGMENTS,
-    Math.round(CONSTANTS.RADIAL_SEGMENTS / 4),
-    0,
-    Math.PI * 2,
-    0,
-    Math.PI * 0.5
-  ),
-  new THREE.MeshStandardMaterial({
-    color: '#b5b5b5',
-    metalness: 0.6,
-    roughness: 0.2,
-    transparent: true,
-    opacity: 0.32,
-  })
-);
-EmptytestTubeBottom1.castShadow = true;
-EmptytestTubeBottom1.rotation.x = Math.PI;
-EmptytestTubeBottom1.position.x = 0.8;
-EmptytestTubeBottom1.position.y = 0.9;
-testTube1.add(EmptytestTubeBottom1);
-
-/**
- * Reagent Sample
- */
-const reagentSample1 = new THREE.Mesh(
-  new THREE.CylinderGeometry(reagentSampleRadius, reagentSampleRadius, 1, 22),
-  new THREE.MeshStandardMaterial({
-    color: '#5f4087',
-    metalness: 0,
-    roughness: 0.5,
-    transparent: true,
-    opacity: 0.32,
-  })
-);
-reagentSample1.position.x = 0.8;
-reagentSample1.position.y = 1.3;
-testTube1.add(reagentSample1);
+testTubeStand1.rotation.y = -0.5;
+testTubeStand1.position.x = -3.3;
+testTubeStand1.position.z = 1.6;
+scene.add(testTubeStand1);
 
 // tube on the ground
-let tubeOnGroundGroup = new THREE.Group();
+const tubeOnGroundGroup = new TestTube({
+  radius: testTubeRadius,
+  height: testTubeHeight,
+  radialSegments: CONSTANTS.RADIAL_SEGMENTS,
+  clickable: false,
+  material: Materials.glass.clone(),
+});
 tubeOnGroundGroup.rotation.x = 1.5;
-tubeOnGroundGroup.rotation.z = 1.5;
-tubeOnGroundGroup.position.x = -2;
-tubeOnGroundGroup.position.y = 0.2;
+tubeOnGroundGroup.rotation.z = 1;
+tubeOnGroundGroup.position.x = -4;
+tubeOnGroundGroup.position.y = 0.225;
 tubeOnGroundGroup.position.z = -1.2;
 scene.add(tubeOnGroundGroup);
-
-// empty tube on metal holder
-const tubeOnGround1 = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.25, 0.25, 2.4, 22),
-  new THREE.MeshStandardMaterial({
-    color: '#b5b5b5',
-    metalness: 0.6,
-    roughness: 0.2,
-    transparent: true,
-    opacity: 0.32,
-  })
-);
-tubeOnGround1.castShadow = true;
-tubeOnGround1.position.x = 0.8;
-tubeOnGround1.position.y = 2.1;
-tubeOnGroundGroup.add(tubeOnGround1);
-
-const tubeOnGroundBottom1 = new THREE.Mesh(
-  new THREE.SphereBufferGeometry(
-    CONSTANTS.TUBE_RADIUS,
-    CONSTANTS.RADIAL_SEGMENTS,
-    Math.round(CONSTANTS.RADIAL_SEGMENTS / 4),
-    0,
-    Math.PI * 2,
-    0,
-    Math.PI * 0.5
-  ),
-  new THREE.MeshStandardMaterial({
-    color: '#b5b5b5',
-    metalness: 0.6,
-    roughness: 0.2,
-    transparent: true,
-    opacity: 0.32,
-  })
-);
-tubeOnGroundBottom1.castShadow = true;
-tubeOnGroundBottom1.rotation.x = Math.PI;
-tubeOnGroundBottom1.position.x = 0.8;
-tubeOnGroundBottom1.position.y = 0.9;
-tubeOnGroundGroup.add(tubeOnGroundBottom1);
 
 window.addEventListener('resize', () => {
   // Update sizes
@@ -734,29 +539,3 @@ window.addEventListener(
 );
 
 window.addEventListener('contextmenu', (event) => event.preventDefault());
-
-function removeObject3D(object3D) {
-  if (!(object3D instanceof THREE.Object3D)) return false;
-
-  if (object3D.geometry) object3D.geometry.dispose();
-
-  if (object3D.material) {
-    if (object3D.material instanceof Array) {
-      object3D.material.forEach((material) => {
-        // clearing all the maps
-        for (const [prop, value] of Object.entries(material)) {
-          if (value && value.dispose instanceof Function) value.dispose();
-        }
-        material.dispose();
-      });
-    } else {
-      // clearing all the maps
-      for (const [prop, value] of Object.entries(object3D.material)) {
-        if (value && value.dispose instanceof Function) value.dispose();
-      }
-      object3D.material.dispose();
-    }
-  }
-  object3D.removeFromParent(); // the parent might be the scene or another Object3D, but it is sure to be removed this way
-  return true;
-}

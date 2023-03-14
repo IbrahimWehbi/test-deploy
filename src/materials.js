@@ -47,6 +47,13 @@ const Materials = {
     transparent: true,
     opacity: 0.32,
   }),
+  purpleLiquid: new THREE.MeshStandardMaterial({
+    color: '#5f4087',
+    metalness: 0,
+    roughness: 1,
+    transparent: true,
+    opacity: 0.32,
+  }),
 };
 
 export { Materials };

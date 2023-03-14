@@ -9,9 +9,10 @@ export default class TestTube extends THREE.Group {
       new THREE.CylinderGeometry(testTube.radius, testTube.radius, testTube.height, testTube.radialSegments, 1, true),
       testTube.material
     );
+    testTubeBase.castShadow = true;
     testTubeBase.material.side = THREE.DoubleSide;
     testTubeBase.material.depthWrite = false;
-    testTubeBase.userData.clickable = true;
+    testTubeBase.userData.clickable = testTube.clickable;
     this.add(testTubeBase);
 
     // hemisphere
@@ -31,7 +32,7 @@ export default class TestTube extends THREE.Group {
 
     testTubeBottom.rotation.x = Math.PI;
     testTubeBottom.position.y = -(testTube.height * 0.5);
-    testTubeBottom.userData.clickable = true;
+    testTubeBottom.userData.clickable = testTube.clickable;
     this.add(testTubeBottom);
   }
 }
