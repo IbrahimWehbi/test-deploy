@@ -1,16 +1,20 @@
 # Base/Acid Experiment
 
 ## Setup
-Download [Node.js](https://nodejs.org/en/download/).
-Run this followed commands:
 
-``` bash
+Download [Node.js](https://nodejs.org/en/download/).
+Run the following commands:
+
+```bash
 # Install dependencies (only the first time)
-npm install
+>npm install
 
 # Run the local server at localhost:8080
-npm run dev
+>npm run dev
 
 # Build for production in the dist/ directory
-npm run build
+>npm run build
+
+# Deploy on github pages
+>npm run deploy
 ```
