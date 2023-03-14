@@ -8,18 +8,19 @@ export default class Beaker extends THREE.Mesh {
     );
     this.material.side = THREE.DoubleSide;
     this.material.depthWrite = false;
+    this.userData.clickable = true;
 
-    if (reagent) {
-      const liquid = new THREE.Mesh(
-        new THREE.CylinderGeometry(beaker.radius - 0.05, beaker.radius - 0.05, 0.1, beaker.radialSegments),
-        reagent.material
-      );
-      liquid.position.y -= beaker.height * 0.5 - 0.1;
-      // if `reagent.amount` is 10 then beaker has filled 10/10, if 7 then 7/10 and so on...
-      liquid.position.y += reagent.amount * 0.05;
-      liquid.scale.y += reagent.amount;
-      this.add(liquid);
-    }
+    const liquid = new THREE.Mesh(
+      new THREE.CylinderGeometry(beaker.radius - 0.05, beaker.radius - 0.05, 0.1, beaker.radialSegments),
+      reagent.material
+    );
+    liquid.material.depthWrite = false;
+
+    liquid.position.y -= beaker.height * 0.5 - 0.1;
+    // if `reagent.amount` is 10 then beaker is filled 10/10, if 7 then 7/10 and so on...
+    liquid.position.y += reagent.amount * 0.05;
+    liquid.scale.y += reagent.amount;
+    this.add(liquid);
   }
 
   fill() {

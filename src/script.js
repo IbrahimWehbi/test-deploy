@@ -7,6 +7,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as CONSTANTS from './constants.js';
 import { Materials } from './materials';
 import Beaker from './components/beaker.js';
+import TestTube from './components/test-tube.js';
 
 /**
  * Base
@@ -40,11 +41,17 @@ const pointer = new THREE.Vector2();
 const labTableGroup = new THREE.Group();
 const pipetteGroup = new THREE.Group();
 const testTubeHolderGroup = new THREE.Group();
-const emptyTubeGroup = new THREE.Group();
 
 // tools measurements
+const labTableWidth = 15;
+const labTableHeight = 6;
+const labTableDepth = 0.4;
+
 const beakerHeight = 1.35;
 const beakerRadius = 0.55;
+
+const testTubeHeight = 2.4;
+const testTubeRadius = 0.25;
 
 // Textures
 let envPlaneTexture = null;
@@ -63,13 +70,13 @@ function GLTFModelCastsShadow(gltfScene) {
  */
 //loading manager
 loadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
-  console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+  // console.log('Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
 };
 loadingManager.onLoad = function () {
-  console.log('Loading complete!');
+  // console.log('Loading complete!');
 };
 loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
-  console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
+  // console.log('Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.');
 };
 loadingManager.onError = function (url) {
   console.log('There was an error loading ' + url);
@@ -118,7 +125,6 @@ gltfLoader.load('models/laptop.glb', (gltf) => {
 // Vertical Plane in the distance with sun-set texture
 textureLoader.load(
   'textures/sunset-scenery.jpg',
-  // onLoad callback
   function (texture) {
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
@@ -132,9 +138,7 @@ textureLoader.load(
     envPlane.position.z = -50;
     envPlaneGroup.add(envPlane);
   },
-  // onProgress callback currently not supported
   undefined,
-  // onError callback
   function (err) {
     console.error('An error happened.');
   }
@@ -174,9 +178,6 @@ scene.add(directionalLight);
 
 //lab table
 scene.add(labTableGroup);
-const labTableWidth = 15;
-const labTableHeight = 6;
-const labTableDepth = 0.4;
 const labTableGeometry = new THREE.BoxBufferGeometry(labTableWidth, labTableHeight, labTableDepth);
 const labTable = new THREE.Mesh(labTableGeometry, Materials.labTable);
 labTable.receiveShadow = true;
@@ -186,7 +187,7 @@ labTableGroup.add(labTable);
 //invisible vertical plane to lock pipette on
 const invisPlane = new THREE.Mesh(
   new THREE.PlaneBufferGeometry(labTableWidth * 2, labTableHeight),
-  new THREE.MeshBasicMaterial({ color: 0x000000, visible: false })
+  new THREE.MeshStandardMaterial({ color: 0x000000, visible: false })
 );
 invisPlane.name = 'invisPlane';
 invisPlane.position.y = labTableHeight * 0.5;
@@ -206,7 +207,7 @@ pipetteRubber.position.y = pipettePlasticHeight;
 pipetteGroup.add(pipetteRubber);
 //plastic part
 const pipettePlastic = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.04, 0.016, pipettePlasticHeight, CONSTANTS.RADIAL_SEGMENTS),
+  new THREE.CylinderGeometry(0.04, 0.016, pipettePlasticHeight, CONSTANTS.RADIAL_SEGMENTS, 1, true),
   Materials.glass.clone()
 );
 pipettePlastic.castShadow = true;
@@ -257,45 +258,19 @@ testTubeMetalHolder.position.x = 0.8;
 testTubeMetalHolder.position.y = testTubeWoodDepth + testTubeVRodHeight * 0.75;
 testTubeHolderGroup.add(testTubeMetalHolder);
 /**
- * Empty Tube
+ * Test Tube
  */
-scene.add(emptyTubeGroup);
-// cylinder
-const emptyTestTubeCylinderHeight = 2.4;
-const EmptyTestTubeCylinder = new THREE.Mesh(
-  new THREE.CylinderGeometry(
-    CONSTANTS.TUBE_RADIUS,
-    CONSTANTS.TUBE_RADIUS,
-    emptyTestTubeCylinderHeight,
-    CONSTANTS.RADIAL_SEGMENTS,
-    1,
-    true
-  ),
-  Materials.glass
-);
-EmptyTestTubeCylinder.name = 'testBeaker';
-EmptyTestTubeCylinder.castShadow = true;
-EmptyTestTubeCylinder.position.x = -1.2;
-EmptyTestTubeCylinder.position.y = CONSTANTS.TUBE_RADIUS + emptyTestTubeCylinderHeight * 0.5 + 0.4;
-scene.add(EmptyTestTubeCylinder);
-// hemisphere
-const emptytestTubeBottom = new THREE.Mesh(
-  new THREE.SphereBufferGeometry(
-    CONSTANTS.TUBE_RADIUS,
-    CONSTANTS.RADIAL_SEGMENTS,
-    Math.round(CONSTANTS.RADIAL_SEGMENTS * 0.25),
-    0,
-    Math.PI * 2,
-    0,
-    Math.PI * 0.5
-  ),
-  Materials.glass
-);
-emptytestTubeBottom.castShadow = true;
-emptytestTubeBottom.position.x = -1.2;
-emptytestTubeBottom.position.y = CONSTANTS.TUBE_RADIUS + 0.4;
-emptytestTubeBottom.rotation.x = Math.PI;
-scene.add(emptytestTubeBottom);
+const activeTestTube = new TestTube({
+  radius: testTubeRadius,
+  height: testTubeHeight,
+  radialSegments: CONSTANTS.RADIAL_SEGMENTS,
+  material: Materials.glass,
+});
+activeTestTube.name = 'activeTestTube';
+activeTestTube.castShadow = true;
+activeTestTube.position.x = -1.2;
+activeTestTube.position.y = testTubeRadius + testTubeHeight * 0.5 + 0.4;
+scene.add(activeTestTube);
 /**
  * Reagent Sample
  */
@@ -311,8 +286,7 @@ scene.add(reagentSample);
 
 // onClick add to reagent if pipette has liquid
 reagentSample.callback = addToReagent;
-EmptyTestTubeCylinder.callback = addToReagent;
-emptytestTubeBottom.callback = addToReagent;
+activeTestTube.callback = addToReagent;
 
 let reagentSelected = '';
 let reagentSampleClickedBefore = false;
@@ -428,7 +402,6 @@ const CuCl2Beaker = new Beaker(
   },
   { amount: 10, material: Materials.blueLiquid }
 );
-console.log(CuCl2Beaker);
 CuCl2Beaker.castShadow = true;
 CuCl2Beaker.position.x = 2;
 CuCl2Beaker.position.y = beakerHeight * 0.5;
@@ -493,10 +466,10 @@ const tick = () => {
   // find intersections
   raycaster.setFromCamera(pointer, camera);
 
-  const intersects = raycaster.intersectObjects(scene.children, false);
+  const intersects = raycaster.intersectObjects(scene.children, true);
 
   if (intersects.length > 0) {
-    // update pipette on y-axis
+    // update pipette on inivPlane y-axis
     for (let i of intersects) {
       if (i.object.name === 'invisPlane') {
         pipetteGroup.position.x = i.point.x;
@@ -505,15 +478,18 @@ const tick = () => {
     }
     // update hovered as green
     if (INTERSECTED != intersects[0].object) {
-      if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+      if (INTERSECTED && INTERSECTED.userData.clickable) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
 
       INTERSECTED = intersects[0].object;
-      INTERSECTED.currentHex = INTERSECTED.material.color.getHex();
-      INTERSECTED.material.color.setHex(0x00ff00);
+
+      if (INTERSECTED.userData.clickable) {
+        INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+        INTERSECTED.material.emissive.setHex(0x00ff00);
+      }
     }
   } else {
     // update greened materials back to original
-    if (INTERSECTED) INTERSECTED.material.color.setHex(INTERSECTED.currentHex);
+    if (INTERSECTED && INTERSECTED.userData.clickable) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
     INTERSECTED = null;
   }
 
@@ -745,7 +721,7 @@ window.addEventListener(
       const modelsBelow = raycaster.intersectObjects(scene.children, false);
       if (modelsBelow.length > 0) {
         modelsBelow.forEach((model) => {
-          if (model.object.name === 'testBeaker' && model.distance > 0) addToReagent();
+          if (model.object.name === 'activeTestTube' && model.distance > 0) addToReagent();
         });
       }
 
